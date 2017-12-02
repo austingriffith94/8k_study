@@ -4,6 +4,7 @@
 # Python 3.6.3
 
 import re
+import csv
 import requests
 import pandas as pd
 import numpy as np
@@ -26,15 +27,14 @@ class sec:
         self.t0 = t0
         self.t1 = t1
         self.n = n
-
+        self.Q = ['QTR1','QTR2','QTR3','QTR4']
+        self.T = list(map(str,list(range(t0,t1+1))))
 
     def pull_index(self):
-        Q = ['QTR1','QTR2','QTR3','QTR4']
-        T = list(map(str,list(range(self.t0,self.t1+1))))
         idx_url = 'data/master.idx'
 
-        for t in T:
-            for q in Q:
+        for t in self.T:
+            for q in self.Q:
                 url = 'https://www.sec.gov/Archives/edgar/full-index/'+t+'/'+q+'/master.zip'
                 index = 'data/master'+t+q+'.idx'
                 req = requests.get(url, stream=True)
@@ -44,43 +44,34 @@ class sec:
                 print(url, 'downloaded')
 
     def del_index(self):
-        Q = ['QTR1','QTR2','QTR3','QTR4']
-        T = list(map(str,list(range(self.t0,self.t1+1))))
-
-        for t in T:
-            for q in Q:
+        for t in self.T:
+            for q in self.Q:
                 index = 'data/master'+t+q+'.idx'
                 os.remove(index)
                 print(index, 'removed')
 
-
     def clean_index(self):
-        Q = ['QTR1','QTR2','QTR3','QTR4']
-        T = list(map(str,list(range(self.t0,self.t1+1))))
-
-        for t in T:
-            for q in Q:
+        for t in self.T:
+            for q in self.Q:
                 index = 'data/master'+t+q+'.idx'
-                links_to_keep = []
+                keep = []
                 # read all lines in .idx for 8-K
                 with open(index, "r") as f:
                     for line in f.readlines():
                         if '8-K' in line:
-                            links_to_keep.append(line)
+                            keep.append(line)
 
                 # write all the links in list to the file
                 with open(index, "w") as f:
-                    for link in links_to_keep:
+                    for link in keep:
                         f.write(link)
 
-
     def read_index(self):
-        Q = ['QTR1','QTR2','QTR3','QTR4']
-        T = list(map(str,list(range(self.t0,self.t1+1))))
         raw = "https://www.sec.gov/Archives/"
+        file = open('data/sec.csv','w')
 
-        for t in T:
-            for q in Q:
+        for t in self.T:
+            for q in self.Q:
                 index = 'data/master'+t+q+'.idx'
 
                 with open(index) as f:
@@ -88,18 +79,19 @@ class sec:
 
                 for i in range(0,self.n):
                     s = line[i].split('|')
-                    file = open('data/sec.csv','ab')
                     cik = s[0]
                     date = s[3]
                     dr = s[4].split('/')
-                    name = dr[3].rstrip('\n')
+                    name = 'data/'+dr[3].rstrip('\n')
+                    url = raw+s[4]
+                    row = [cik,date,url]
 
+                    write = csv.writer(file, delimiter=',')
+                    write.writerow(row)
+        file.close()
 
-
-
-
-
-
+    def dl_forms(self):
+        pass
 
 
 # years to look at
@@ -109,4 +101,6 @@ n = 100
 gov = sec(t0,t1,n)
 gov.pull_index()
 gov.clean_index()
+gov.read_index()
+# gov.del_index()
 
