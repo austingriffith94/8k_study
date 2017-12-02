@@ -43,6 +43,16 @@ class sec:
                 move(idx_url, index)
                 print(url, 'downloaded')
 
+    def del_index(self):
+        Q = ['QTR1','QTR2','QTR3','QTR4']
+        T = list(map(str,list(range(self.t0,self.t1+1))))
+
+        for t in T:
+            for q in Q:
+                index = 'data/master'+t+q+'.idx'
+                os.remove(index)
+                print(index, 'removed')
+
 
     def clean_index(self):
         Q = ['QTR1','QTR2','QTR3','QTR4']
@@ -83,6 +93,7 @@ class sec:
                     date = s[3]
                     dr = s[4].split('/')
                     name = dr[3].rstrip('\n')
+
 
 
 
