@@ -29,7 +29,6 @@ class sec:
 
     def pull_index(self):
         idx_url = 'data/master.idx'
-
         for t in self.T:
             for q in self.Q:
                 url = 'https://www.sec.gov/Archives/edgar/full-index/'+t+'/'+q+'/master.zip'
@@ -67,7 +66,6 @@ class sec:
     def read_index(self):
         random.seed(903353429)
         rows_list = []
-
         for t in self.T:
             for q in self.Q:
                 index = 'data/master'+t+q+'.idx'
@@ -116,11 +114,17 @@ n = 100
 x = 4
 y = list(range(0,x))
 
+# reads index data, creates csv directory
 gov = sec(t0,t1,n,x)
 gov.pull_index()
 gov.clean_index()
 gov.read_index()
 gov.del_index()
+
+# pauses code
+time.sleep(5)
+
+# pulls 8-k data
 pool = ThreadPool(x)
 pool.map(gov.dl_forms,y)
 # gov.del_dl_forms()
