@@ -3,20 +3,17 @@
 # Event Studies and Sentiment Analysis
 # Python 3.6.3
 
-import re
-import csv
 import requests
 import pandas as pd
 import numpy as np
 import random
-import fileinput
 import zipfile
-import datetime
 from shutil import move
-import fileinput
 import os
 import io
 from bs4 import BeautifulSoup as beaut
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
 
 # create directory for data files
 if os.path.exists('data') == False:
@@ -24,9 +21,8 @@ if os.path.exists('data') == False:
 
 # class for reading files from sec website
 class sec:
-    def __init__(self,t0,t1,n):
-        self.t0 = t0
-        self.t1 = t1
+    def __init__(self,t0,t1,n,x):
+        self.x = x
         self.n = n
         self.Q = ['QTR1','QTR2','QTR3','QTR4']
         self.T = list(map(str,list(range(t0,t1+1))))
@@ -66,6 +62,7 @@ class sec:
                 with open(index, "w") as f:
                     for link in keep:
                         f.write(link)
+                print(index, 'cleaned')
 
     def read_index(self):
         random.seed(903353429)
@@ -92,9 +89,10 @@ class sec:
         res = pd.DataFrame(rows_list)
         res.to_csv('sec.csv')
 
-    def dl_forms(self):
+    def dl_forms(self,y=0):
         pull = pd.read_csv('sec.csv')
-        for i in range(1, pull.shape[0]):
+        size = pull.shape[0]
+        for i in range(int(y*size/self.x), int((y+1)*size/self.x)):
             form = requests.get(pull['url'][i])
             soup = beaut(form.text, 'lxml').text
             file = open('data/'+pull['cik'][i].astype(str)+' '+pull['date'][i]+'.txt','w', encoding='utf8')
@@ -115,10 +113,14 @@ class sec:
 t0 = 1995
 t1 = 2016
 n = 100
-gov = sec(t0,t1,n)
-# gov.pull_index()
-# gov.clean_index()
-# gov.read_index()
-# gov.del_index()
-# gov.dl_forms()
+x = 4
+y = list(range(0,x))
+
+gov = sec(t0,t1,n,x)
+gov.pull_index()
+gov.clean_index()
+gov.read_index()
+gov.del_index()
+pool = ThreadPool(x)
+pool.map(gov.dl_forms,y)
 # gov.del_dl_forms()
