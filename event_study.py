@@ -83,8 +83,7 @@ class sec:
                     s = line[i].split('|')
                     cik = s[0]
                     date = s[3]
-                    dr = s[4].split('/')
-                    name = 'data/'+dr[3].rstrip('\n')
+                    name = s[1]
                     url = raw+s[4].rstrip('\n')
                     row = {'cik':cik,'date':date,
                         'name':name,'url':url}
@@ -101,6 +100,15 @@ class sec:
             file = open('data/'+pull['cik'][i].astype(str)+' '+pull['date'][i]+'.txt','w', encoding='utf8')
             file.write(soup)
             file.close
+            print(pull['url'][i], 'downloaded')
+
+    def del_dl_forms(self):
+        pull = pd.read_csv('sec.csv')
+        for i in range(1, pull.shape[0]):
+            file = 'data/'+pull['cik'][i].astype(str)+' '+pull['date'][i]+'.txt'
+            if os.path.exists(file) == True:
+                os.remove(file)
+            print(file, 'removed')
 
 
 # years to look at
@@ -108,8 +116,9 @@ t0 = 1995
 t1 = 2016
 n = 100
 gov = sec(t0,t1,n)
-gov.pull_index()
-gov.clean_index()
-gov.read_index()
+# gov.pull_index()
+# gov.clean_index()
+# gov.read_index()
 # gov.del_index()
-# gov.dl.forms()
+# gov.dl_forms()
+# gov.del_dl_forms()
