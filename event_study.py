@@ -5,6 +5,7 @@
 
 from datetime import datetime as dt
 import pandas as pd
+import time
 
 # use first column of dsi as Rmt
 # add 2.55*10^6 to volumes that are zero
@@ -15,15 +16,30 @@ import pandas as pd
 sec = pd.read_csv('sec.csv')
 dsi = pd.read_csv('dsi.csv')
 dsf = pd.read_csv('dsf.csv')
-
-cik = sec['cik'].unique()
-rit = dsf[dsf['CIK'].isin([cik[25]])]
-
 dsf['date'] = pd.to_datetime(dsf['date']).dt.date
 sec['date'] = pd.to_datetime(sec['date']).dt.date
+dsi['DATE'] = pd.to_datetime(dsi['DATE'], format='%Y%m%d').dt.date
 
-rmt = dsi[['vwretd']]
-rit = dsf[['RET']]
+cik = sec['cik'].unique()
 
-mergen = sm.add_constant(mergen)
-est = sm.OLS(merge[yh],mergen).fit()
+for i in cik:
+    rit = dsf[dsf['CIK'].isin([i])]
+    if rit.empty == False:
+        year = rit['obs_year'].iloc[0]
+
+i = cik[43]
+rit = dsf[dsf['CIK'].isin([i])]
+# if statement to check rit
+year_v = rit['dsf_year'].iloc[0]
+market = dsi.loc[dsi['year'] == year_v]
+x = pd.DataFrame(market[['vwretd','DATE']])
+x = x.reset_index(drop=True)
+x = x.set_index('DATE')
+y = pd.DataFrame(rit[['RET','date']])
+y = y.reset_index(drop=True)
+y = y.set_index('date')
+merge = pd.merge(x, y, how='inner', left_index=True, right_index=True)
+
+
+
+
