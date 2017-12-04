@@ -4,6 +4,7 @@
 # Python 3.6.3
 
 import requests
+import time
 import pandas as pd
 import numpy as np
 import random
