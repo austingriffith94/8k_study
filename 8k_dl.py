@@ -28,6 +28,7 @@ class sec:
         self.Q = ['QTR1','QTR2','QTR3','QTR4']
         self.T = list(map(str,list(range(t0,t1+1))))
 
+    # pulls zipped indexes from sec website
     def pull_index(self):
         idx_url = 'data/master.idx'
         for t in self.T:
@@ -40,6 +41,7 @@ class sec:
                 move(idx_url, index)
                 print(url, 'downloaded')
 
+    # delete indexes once done using them
     def del_index(self):
         for t in self.T:
             for q in self.Q:
@@ -47,6 +49,7 @@ class sec:
                 os.remove(index)
                 print(index, 'removed')
 
+    # cleans index for just 8-k filings
     def clean_index(self):
         for t in self.T:
             for q in self.Q:
@@ -64,6 +67,7 @@ class sec:
                         f.write(link)
                 print(index, 'cleaned')
 
+    # puts index information into a csv
     def read_index(self):
         random.seed(903353429)
         rows_list = []
@@ -88,6 +92,7 @@ class sec:
         res = pd.DataFrame(rows_list)
         res.to_csv('sec.csv')
 
+    # downloads 8-k .txt files
     def dl_forms(self,y=0):
         pull = pd.read_csv('sec.csv')
         size = pull.shape[0]
@@ -99,6 +104,7 @@ class sec:
             file.close
             print(pull['url'][i], 'downloaded')
 
+    # deletes 8-k .txt files once done using them
     def del_dl_forms(self):
         pull = pd.read_csv('sec.csv')
         for i in range(1, pull.shape[0]):
@@ -108,6 +114,8 @@ class sec:
             print(file, 'removed')
 
 
+
+#------------------------MAIN CODE------------------------#
 # years to look at
 t0 = 1995
 t1 = 2016
