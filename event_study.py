@@ -99,7 +99,7 @@ class abnormal:
                             for i in range(0,len(window)):
                                 market = self.dsi.iloc[loc+i].transpose()['vwretd']
                                 ret = rit.iloc[window[i]].transpose()['RET']
-                                ar = ret + (alpha + beta*market)
+                                ar = ret - (alpha + beta*market)
                                 ar = {'ar':ar}
                                 ars = ars.append([ar])
                             if ars.empty == False:
