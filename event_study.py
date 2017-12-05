@@ -21,12 +21,14 @@ from scipy.stats import norm
 # log of day i - average of window (11 - 71) divided by std dev of window (11-71)
 # pandas.describe to get descriptive stats
 
+# abnormal class
 class abnormal:
     def __init__(self,sec,dsf,dsi):
         self.sec = sec
         self.dsf = dsf
         self.dsi = dsi
 
+    # models alpha and beta values from previous year returns
     def ret_model(self):
         ciks = self.sec.drop_duplicates(subset='cik')
         ciks = ciks.reset_index(drop=True)
@@ -58,6 +60,7 @@ class abnormal:
         coef = coef.reset_index(drop=True)
         return(coef)
 
+    # calculates abnormal returns around 8-k filing dates using alpha and beta coefficients
     def abret(self,coef):
         ciks = self.sec.drop_duplicates(subset='cik')
         ciks = ciks.reset_index(drop=True)
@@ -105,6 +108,7 @@ class abnormal:
         cars = cars.reset_index(drop=True)
         return(cars)
 
+    # calculates the volj for each date
     def cav_clean(self):
         const = 2.55*10**(-6)
         var = self.dsf[['VOL','SHROUT','date','CIK','dsf_year']]
@@ -112,6 +116,7 @@ class abnormal:
         var['cav'] = np.log(const + var['VOL']/(var['SHROUT']*1000))
         return(var)
 
+    # calculates the abnormal volume in window around 8-k filing dates
     def abvol(self,var):
         ciks = self.sec.drop_duplicates(subset='cik')
         ciks = ciks.reset_index(drop=True)
