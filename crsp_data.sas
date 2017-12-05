@@ -67,7 +67,7 @@ run;
 /*---------------------------merge dsf and merged---------------------------*/
 /*pulls dsf data*/
 data dsf;
-set crsp.dsf(keep = CUSIP RET VOL DATE);
+set crsp.dsf(keep = CUSIP RET VOL DATE SHROUT);
 dsf_year = year(DATE);
 format DATE mmddyy10.;
 if dsf_year >= 1994 and dsf_year <= 2016;
