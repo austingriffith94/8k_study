@@ -27,10 +27,11 @@ sec['date'] = pd.to_datetime(sec['date']).dt.date
 dsi['DATE'] = pd.to_datetime(dsi['DATE'], format='%Y%m%d').dt.date
 
 coef = pd.DataFrame([])
-cik = sec['cik'].unique()
+ciks = sec.drop_duplicates(subset='cik')
+ciks = ciks.reset_index(drop=True)
 
-for i in range(0,cik.shape[0]):
-    rit = dsf[dsf['CIK'].isin([cik[i]])]
+for i in range(0,ciks.shape[0]):
+    rit = dsf[dsf['CIK'].isin([ciks['cik'][i]])]
     if rit.empty == False:
         year_v = rit['dsf_year'].iloc[0]
         market = dsi.loc[dsi['year'] == year_v]
@@ -49,9 +50,62 @@ for i in range(0,cik.shape[0]):
         # model.summary()
         # model.params
         par = model.params.to_frame().transpose()
-        ind = pd.DataFrame([{'cik':cik[i]}])
+        ind = pd.DataFrame([{'cik':ciks['cik'][i]}])
         final = pd.concat([par,ind], axis=1)
         coef = coef.append(final)
+coef = coef.reset_index(drop=True)
+
+
+
+################################################### CAR ################
+for j in range(0,ciks.shape[0]):
+    pass
+
+
+ciks = sec.drop_duplicates(subset='cik')
+ciks = ciks.reset_index(drop=True)
+ciks['YEAR'] = pd.to_datetime(ciks['date']).dt.year
+# limit to 2015 and earlier due to limits on dsi market data
+dsf0 = dsf[dsf['obs_year']<2016]
+ciks = ciks[ciks['YEAR']<2016]
+# for loop
+j = 1010
+c = ciks.iloc[j][2]
+rit = dsf0[dsf0['CIK'].isin([ciks['cik'][j]])]
+rit = rit.reset_index(drop=True)
+## if rit not empty
+locr = rit.loc[rit['date'] == c].index[0]
+loc = dsi.loc[dsi['DATE'] == c].index[0] - 5
+    
+if(locr+5 >= rit.shape[0]):
+    window = []
+elif(locr-5 <= 0):
+    window = []
+else:
+    window = list(range(locr-5,locr+5))
+
+alpha = coef[coef['cik'] == ciks['cik'][j]]['const']
+beta = coef[coef['cik'] == ciks['cik'][j]]['vwretd']
+cars = pd.DataFrame([])
+if not window == False:
+    if alpha.empty == False:
+        ars = pd.DataFrame([])
+        alpha = alpha.reset_index(drop=True)[0]
+        beta = beta.reset_index(drop=True)[0]
+        for i in range(0,len(window)):
+            market = dsi.iloc[loc+i].transpose()['vwretd']
+            ret = rit.iloc[window[i]].transpose()['RET']
+            ar = ret + (alpha + beta*market)
+            ar = {'ar':ar}
+            ars = ars.append([ar])
+        final_car = {'car':ars['ar'].sum(),'cik':ciks['cik'][j]}
+        cars = cars.append([final_car])
+            
+        
+
+
+
+################################################# CAV ##################
 
 def cav_clean(dsf):
     const = 2.55*10**(-6)
@@ -69,19 +123,19 @@ for j in range(0,ciks.shape[0]):
     c = ciks.iloc[j][2]
     vol = var[var['CIK'].isin([ciks['cik'][j]])]
     vol = vol.reset_index(drop=True)
-    
+
     if vol.empty == False:
         vol = vol.reset_index(drop=True)
         loc = vol['date'][vol['date'] == c]
-        
+
         if loc.empty == False:
             loc = loc.index.tolist()[0]
-        
+
             if(loc + 5 >= vol.shape[0]):
                 window = list(range(loc-5,vol.shape[0]))
             else:
                 window = list(range(loc-5,loc+6))
-        
+
             avs = pd.DataFrame([])
             for d in window:
                 if(d-71 < 0):
@@ -90,7 +144,7 @@ for j in range(0,ciks.shape[0]):
                 else:
                     x = d-71
                     y = d-11
-                    
+
                 if(d-11 < 0):
                     avs = pd.DataFrame([])
                 else:
@@ -101,9 +155,8 @@ for j in range(0,ciks.shape[0]):
                     avj = (volj-win_avg)/win_std
                     avj = {'av':avj}
                     avs = avs.append([avj])
-            if avs.empty == False:        
-                final_cav = {'cav':avs['av'].sum()}
+            if avs.empty == False:
+                final_cav = {'cav':avs['av'].sum(),'cik':ciks['cik'][j]}
                 cavs = cavs.append([final_cav])
-
-
+stats = cavs['cav'].describe()
 
