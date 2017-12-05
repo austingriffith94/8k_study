@@ -58,9 +58,6 @@ coef = coef.reset_index(drop=True)
 
 
 ################################################### CAR ################
-for j in range(0,ciks.shape[0]):
-    pass
-
 
 ciks = sec.drop_duplicates(subset='cik')
 ciks = ciks.reset_index(drop=True)
@@ -68,39 +65,42 @@ ciks['YEAR'] = pd.to_datetime(ciks['date']).dt.year
 # limit to 2015 and earlier due to limits on dsi market data
 dsf0 = dsf[dsf['obs_year']<2016]
 ciks = ciks[ciks['YEAR']<2016]
-# for loop
-j = 1010
-c = ciks.iloc[j][2]
-rit = dsf0[dsf0['CIK'].isin([ciks['cik'][j]])]
-rit = rit.reset_index(drop=True)
-## if rit not empty
-locr = rit.loc[rit['date'] == c].index[0]
-loc = dsi.loc[dsi['DATE'] == c].index[0] - 5
-    
-if(locr+5 >= rit.shape[0]):
-    window = []
-elif(locr-5 <= 0):
-    window = []
-else:
-    window = list(range(locr-5,locr+5))
-
-alpha = coef[coef['cik'] == ciks['cik'][j]]['const']
-beta = coef[coef['cik'] == ciks['cik'][j]]['vwretd']
 cars = pd.DataFrame([])
-if not window == False:
-    if alpha.empty == False:
-        ars = pd.DataFrame([])
-        alpha = alpha.reset_index(drop=True)[0]
-        beta = beta.reset_index(drop=True)[0]
-        for i in range(0,len(window)):
-            market = dsi.iloc[loc+i].transpose()['vwretd']
-            ret = rit.iloc[window[i]].transpose()['RET']
-            ar = ret + (alpha + beta*market)
-            ar = {'ar':ar}
-            ars = ars.append([ar])
-        final_car = {'car':ars['ar'].sum(),'cik':ciks['cik'][j]}
-        cars = cars.append([final_car])
+for j in range(0,ciks.shape[0]):
+    c = ciks.iloc[j][2]
+    rit = dsf0[dsf0['CIK'].isin([ciks['cik'][j]])]
+    rit = rit.reset_index(drop=True)
+    if rit.empty == False:
+        locr = rit.loc[rit['date'] == c]
+        if  locr.empty == False:
+            locr = locr.index[0]
+            loc = dsi.loc[dsi['DATE'] == c].index[0] - 5
+                
+            if(locr+5 >= rit.shape[0]):
+                window = []
+            elif(locr-5 <= 0):
+                window = []
+            else:
+                window = list(range(locr-5,locr+5))
             
+            alpha = coef[coef['cik'] == ciks['cik'][j]]['const']
+            beta = coef[coef['cik'] == ciks['cik'][j]]['vwretd']
+            
+            if not window == False:
+                if alpha.empty == False:
+                    ars = pd.DataFrame([])
+                    alpha = alpha.reset_index(drop=True)[0]
+                    beta = beta.reset_index(drop=True)[0]
+                    for i in range(0,len(window)):
+                        market = dsi.iloc[loc+i].transpose()['vwretd']
+                        ret = rit.iloc[window[i]].transpose()['RET']
+                        ar = ret + (alpha + beta*market)
+                        ar = {'ar':ar}
+                        ars = ars.append([ar])
+                    if ars.empty == False:
+                        final_car = {'car':ars['ar'].sum(),'cik':ciks['cik'][j]}
+                        cars = cars.append([final_car])
+                
         
 
 
