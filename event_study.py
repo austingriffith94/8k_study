@@ -53,7 +53,6 @@ for i in range(0,cik.shape[0]):
         final = pd.concat([par,ind], axis=1)
         coef = coef.append(final)
 
-
 def cav_clean(dsf):
     const = 2.55*10**(-6)
     var = dsf[['VOL','SHROUT','date','CIK','dsf_year']]
@@ -63,25 +62,48 @@ def cav_clean(dsf):
 
 var = cav_clean(dsf)
 ciks = sec.drop_duplicates(subset='cik')
-
-vol = var[var['CIK'].isin([ciks['cik'][i]])]
-vol.reset_index(drop=True)
+ciks = ciks.reset_index(drop=True)
 
 cavs = pd.DataFrame([])
 for j in range(0,ciks.shape[0]):
     c = ciks.iloc[j][2]
-    loc = vol['date'][vol['date'] == c].index.tolist()[0]
-    avs = pd.DataFrame([])
-    for d in range(loc-5,loc+6):
-        win_cav = vol.loc[range(d-71,d-11)]['cav']
-        win_avg = win_cav.mean()
-        win_std = win_cav.std()
-        volj = vol['cav'][d]
-        avj = (volj-win_avg)/win_std 
-        avj = {'av':avj}
-        avs = avs.append([avj])
-    final_cav = {'cav':avs['av'].sum()}
-    cavs = cavs.append([final_cav])
+    vol = var[var['CIK'].isin([ciks['cik'][j]])]
+    vol = vol.reset_index(drop=True)
+    
+    if vol.empty == False:
+        vol = vol.reset_index(drop=True)
+        loc = vol['date'][vol['date'] == c]
+        
+        if loc.empty == False:
+            loc = loc.index.tolist()[0]
+        
+            if(loc + 5 >= vol.shape[0]):
+                window = list(range(loc-5,vol.shape[0]))
+            else:
+                window = list(range(loc-5,loc+6))
+        
+            avs = pd.DataFrame([])
+            for d in window:
+                if(d-71 < 0):
+                    x = 0
+                    y = d-11
+                else:
+                    x = d-71
+                    y = d-11
+                    
+                if(d-11 < 0):
+                    avs = pd.DataFrame([])
+                else:
+                    win_cav = vol.loc[range(x,y)]['cav']
+                    win_avg = win_cav.mean()
+                    win_std = win_cav.std()
+                    volj = vol['cav'][d]
+                    avj = (volj-win_avg)/win_std
+                    avj = {'av':avj}
+                    avs = avs.append([avj])
+            if avs.empty == False:        
+                final_cav = {'cav':avs['av'].sum()}
+                cavs = cavs.append([final_cav])
 
 
 
