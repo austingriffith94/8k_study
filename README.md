@@ -1,2 +1,4 @@
 # 8k_study
-Sentiment analysis of 8-k forms
+Analysis of returns around 8k form filing dates
+
+May attempt sentiment analysis on forms in future
