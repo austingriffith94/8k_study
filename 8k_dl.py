@@ -13,20 +13,19 @@ from shutil import move
 import os
 import io
 from bs4 import BeautifulSoup as beaut
-from multiprocessing import Pool
-from multiprocessing.dummy import Pool as ThreadPool
-
-# create directory for data files
-if os.path.exists('data') == False:
-    os.makedirs('data')
 
 # class for reading files from sec website
 class sec:
-    def __init__(self,t0,t1,n,x):
+    def __init__(self,t0,t1,n,x,filename):
         self.x = x
         self.n = n
         self.Q = ['QTR1','QTR2','QTR3','QTR4']
         self.T = list(map(str,list(range(t0,t1+1))))
+        
+        # create directory for data files
+        if os.path.exists(filename) == False:
+            os.makedirs(filename)
+
 
     # pulls zipped indexes from sec website
     def pull_index(self):
@@ -119,12 +118,12 @@ class sec:
 # years to look at
 t0 = 1995
 t1 = 2016
-n = 100
+n = 100 # choose random n from each quarter of each year
 x = 4
-y = list(range(0,x))
+file = 'data'
 
 # reads index data, creates csv directory
-gov = sec(t0,t1,n,x)
+gov = sec(t0,t1,n,x,file)
 gov.pull_index()
 gov.clean_index()
 gov.read_index()
@@ -134,6 +133,5 @@ gov.del_index()
 time.sleep(5)
 
 # pulls 8-k data
-pool = ThreadPool(x)
-pool.map(gov.dl_forms,y)
+gov.dl_forms()
 # gov.del_dl_forms()
